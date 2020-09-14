@@ -88,17 +88,18 @@ jobs:
           biocversionnum=$(Rscript -e "info <- BiocManager:::.version_map_get_online('https://bioconductor.org/config.yaml'); res <- subset(info, BiocStatus == 'release')[, 'Bioc']; cat(as.character(res))")
           biocrelease=${biocversionnum/\./_}
           biocrelease=${biocrelease/#/RELEASE_}
+          imagename="bioconductor/bioconductor_docker:${biocrelease}"
           rversion=$(Rscript -e "info <- BiocManager:::.version_map_get_online('https://bioconductor.org/config.yaml'); res <- subset(info, BiocStatus == 'release')[, 'R']; cat(as.character(res))")
          
           ## Print the results
-          echo $biocversionnum
-          echo $biocrelease
           echo $rversion
+          echo $biocversionnum
+          echo $imagename
 
           ## Save the info for the next job
           echo "::set-output name=rversion::${rversion}"
           echo "::set-output name=biocversionnum::${biocversionnum}"
-          echo "::set-output name=biocrelease::${biocrelease}"
+          echo "::set-output name=biocrelease::${imagename}"
         shell: bash {0}
   R_CMD_check_bioc:
     runs-on: ubuntu-latest
@@ -117,7 +118,7 @@ jobs:
       ## runner to a docker directory, such that we can then cache the linked
       ## directory. This directory will contain the R packages used.
     container:
-      image: "bioconductor/bioconductor_docker:${biocrelease}"
+      image: ${{ needs.define-bioc-info.outputs.biocrelease }}
       volumes:
       - /home/runner/work/_temp/Library:/usr/local/lib/R/host-site-library
     steps:
