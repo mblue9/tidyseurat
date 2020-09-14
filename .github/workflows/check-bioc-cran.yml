@@ -60,14 +60,29 @@ env:
   cache_version: 'cache_v1'
 
 jobs:
+  ## The first job uses the Bioconductor devel Docker to get the R and Bioconductor version numbers for the current Bioc release
+  ## There may be a better way to do this without using Bioc devel docker
   define_bioc_version:
     runs-on: ubuntu-latest
+    
     outputs:
       rversion: ${{ steps.findversion.outputs.rversion }}
       biocversionnum: ${{ steps.findversion.outputs.biocversionnum }}
       biocrelease: ${{ steps.findversion.outputs.biocrelease }}
+      
+    container:
+      image: "bioconductor/bioconductor_docker:devel"
+      
     steps:
+      - name: Install BiocManager
+        run: |
+          install.packages('remotes')
+          message(paste('****', Sys.time(), 'installing BiocManager ****'))
+          remotes::install_cran("BiocManager")
+        shell: Rscript {0}
+        
       - id: findversion
+        name: Find Bioc and R versions
         run: |
           ## Define the R and Bioconductor version numbers for the current Bioc release
           biocversionnum=$(Rscript -e "info <- BiocManager:::.version_map_get_online('https://bioconductor.org/config.yaml'); res <- subset(info, BiocStatus == 'release')[, 'Bioc']; cat(as.character(res))")
@@ -261,7 +276,7 @@ jobs:
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
       RSPM: ${{ matrix.config.rspm }}
-      BIOCVERSIONNUM: '3.11'
+      BIOCVERSIONNUM: ${{ needs.R-CMD-check-bioc.outputs.biocversionnum }}
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     
     steps:
