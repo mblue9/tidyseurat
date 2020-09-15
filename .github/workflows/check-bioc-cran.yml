@@ -2,7 +2,7 @@
 ## - Autodetects current Bioc release and tests against that Docker image for ubuntu. 
 ##   Tests against current Bioc release packages and R version for Mac and Windows
 ## - Changed - to _ in variable names to try to use act (https://github.com/nektos/act) 
-##   for testing GHA locally. But added back needs so won't work with act but can test with my fork
+##   for testing GHA locally. But added back needs: so won't work with act but can test with my fork
 ## 
 ##
 ## Read more about GitHub actions the features of this GitHub Actions workflow
